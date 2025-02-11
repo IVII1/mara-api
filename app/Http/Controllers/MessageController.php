@@ -15,7 +15,7 @@ class MessageController extends Controller
     public function store(MessageStoreRequest $request ){
         $params = $request->all();
         $message = Message::create($params);
-        Notification::route('mail', 'ivojlo2002@gmail.com')->notify(new MessageReceived($message));
+        Notification::route('mail', 'marajov@mit.edu')->notify(new MessageReceived($message));
         return new MessageResource($message);
     }
     public function index(Request $request){
