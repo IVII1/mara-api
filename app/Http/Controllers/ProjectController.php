@@ -6,11 +6,10 @@ use App\Http\Requests\ProjectStoreRequest;
 use App\Http\Requests\ProjectUpdateRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
-use App\Units;
 use Cloudinary\Cloudinary;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+
 
 class ProjectController extends Controller
 {
@@ -89,12 +88,12 @@ class ProjectController extends Controller
                 ]
             ]);
     
-            // Delete from Cloudinary if we have an ID
+            
             if ($project->cloudinary_id) {
                 $cloudinary->uploadApi()->destroy($project->cloudinary_id);
             }
     
-            // Delete the project from database
+           
             $project->delete();
     
             return response()->json([
