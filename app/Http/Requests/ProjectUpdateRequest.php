@@ -31,6 +31,7 @@ class ProjectUpdateRequest extends FormRequest
             'depth' => 'decimal:0,2',
             'units' => [ Rule::in(['cm', 'm', 'mm', 'ft', '"'])],
             'production_year' => 'integer',
+            'description' =>'string|nullable',
             
         ];
         

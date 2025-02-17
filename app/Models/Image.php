@@ -11,4 +11,7 @@ class Image extends Model
         'image_url',
         'cloudinary_id'
     ];
+    public function project(){
+        return $this->belongsTo(Project::class);
+    }
 }

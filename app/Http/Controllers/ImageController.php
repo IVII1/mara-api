@@ -121,13 +121,16 @@ class ImageController extends Controller
         $images = Image::all();
         return ImageResource::collection($images);
     }
-    public function show(int $id){
+    public function show(int $id,  Request $request){
      try {
         $image = Image::findOrFail($id);
      }
         catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Image not found', ], 404);
         }
+        if ($this->shouldInclude($request, 'project')) {
+            $image->load('project');
         return new ImageResource($image);
+}
 }
 }

@@ -21,6 +21,9 @@ class ImageResource extends JsonResource
             'cloudinary_id' => $this->cloudinary_id,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'project' => $this->whenLoaded('project', function() {
+            return new ProjectResource($this->project);
+})
 
 
         ];

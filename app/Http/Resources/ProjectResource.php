@@ -19,6 +19,7 @@ class ProjectResource extends JsonResource
            'thumbnail' => $this->thumbnail,
            'cloudinary_id'=> $this->cloudinary_id,
            'title' => $this->title,
+           'description'=> $this->description,
             'material' => $this->material,
             'height' => $this->height,
             'width' => $this->width,

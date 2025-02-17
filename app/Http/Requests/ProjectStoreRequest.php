@@ -32,6 +32,7 @@ class ProjectStoreRequest extends FormRequest
             'depth' => 'required|decimal:0,2',
             'units' => [ Rule::in(['cm', 'm', 'mm', 'ft', '"'])],
             'production_year' => 'required|integer',
+            'description' =>'nullable|string',
             
 
         ];
