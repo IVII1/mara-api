@@ -14,11 +14,15 @@ class ImageController extends Controller
     public function upload(Request $request, int $projectId)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_thumbnail' => 'sometimes|boolean',
-        ]);
+            'images' => 'required|array',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048','images.required' => 'Please select at least one image.',
+            'images.array' => 'Invalid format for images.',
+            'images.*.required' => 'Each image is required.',
+            'images.*.image' => 'File must be an image.',
+            'images.*.mimes' => 'Image must be of type: jpeg, png, jpg, gif.',
+            'images.*.max' => 'Image size must not exceed 2MB.',
+        ],);
     
-        
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -27,19 +31,28 @@ class ImageController extends Controller
             ],
         ]);
     
-        $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image')->getRealPath());
-        $imageUrl = $uploadedFileResponse['secure_url'];
-        $cloudinaryId = $uploadedFileResponse['public_id'];
+        $uploadedImages = [];
     
-        
-        $projectImage = Image::create([
-            'project_id' => $projectId,
-            'image_url' => $imageUrl,
-            'cloudinary_id' => $cloudinaryId,
-        ]);
+        foreach ($request->file('images') as $image) {
+            try {
+                $uploadedFileResponse = $cloudinary->uploadApi()->upload($image->getRealPath());
+                
+                $projectImage = Image::create([
+                    'project_id' => $projectId,
+                    'image_url' => $uploadedFileResponse['secure_url'],
+                    'cloudinary_id' => $uploadedFileResponse['public_id'],
+                ]);
     
-        return new ImageResource($projectImage);
-       
+                $uploadedImages[] = $projectImage;
+            } catch (\Exception $e) {  
+                return response()->json([
+                    'message' => 'Failed to upload images.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+        }
+    
+        return ImageResource::collection(collect($uploadedImages));
     }
 
     public function destroy(int $imageId){
