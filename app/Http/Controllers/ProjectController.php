@@ -22,7 +22,7 @@ class ProjectController extends Controller
     
     public function store(ProjectStoreRequest $request)
     {
-     $validatedData = $request->validated();
+     $validatedData = $request->all();
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
