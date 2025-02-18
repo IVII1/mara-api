@@ -17,6 +17,7 @@ class Project extends Model
         'units',
         'production_year',
         'description',
+        'position',
     ];
     public function images(){
         return $this->hasMany(Image::class);
