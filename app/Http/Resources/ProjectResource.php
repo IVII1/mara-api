@@ -26,6 +26,7 @@ class ProjectResource extends JsonResource
             'depth' => $this->depth,
             'units' => $this->units,
             'production_year' => $this->production_year,
+            'position'=> $this->position,
             'images' =>  ImageResource::collection($this->whenLoaded('images')),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),

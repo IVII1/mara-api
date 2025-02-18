@@ -14,15 +14,36 @@ use Illuminate\Http\Request;
 class ProjectController extends Controller
 {
    
-    public function index()
+    public function index(Request $request)
     {
-        return Project::all();
+        $allowedSortColumns = ['id', 'title', 'created_at', 'updated_at', 'position']; 
+        
+        $query = Project::query();
+        
+        if ($request->has('sort')) {
+            $sortColumn = $request->input('sort');
+            $direction = $request->input('order', 'asc');
+            
+            
+            if (in_array($sortColumn, $allowedSortColumns)) {
+                $query->orderBy($sortColumn, $direction);
+            }
+            
+          
+            if (!in_array(strtolower($direction), ['asc', 'desc'])) {
+                $direction = 'asc';
+            }
+        }
+        
+        return $query->get();
     }
-
     
     public function store(ProjectStoreRequest $request)
     {
-     $validatedData = $request->all();
+        $validatedData = $request->all();
+        $highestPosition = Project::max('position') ?? 1;
+        $validatedData['position'] = $highestPosition + 1;
+        
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -30,12 +51,16 @@ class ProjectController extends Controller
                 'api_secret' => env('CLOUDINARY_API_SECRET'),
             ],
         ]);
+        
         $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('thumbnail')->getRealPath());
         $thumbnailUrl = $uploadedFileResponse['secure_url'];
         $cloudinaryId = $uploadedFileResponse['public_id'];
+        
         $validatedData['thumbnail'] = $thumbnailUrl;
         $validatedData['cloudinary_id'] = $cloudinaryId;
+        
         $project = Project::create($validatedData);
+        
         return new ProjectResource($project);
     }
 
@@ -50,10 +75,9 @@ class ProjectController extends Controller
         }
         if ($this->shouldInclude($request, 'images')) {
             $project->load('images');
-        
+        }
+    
         return new ProjectResource($project);
-    }
-
     }
 
     public function update(ProjectUpdateRequest $request, Project $project, int $id)
