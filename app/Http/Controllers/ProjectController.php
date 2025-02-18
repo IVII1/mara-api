@@ -85,16 +85,16 @@ class ProjectController extends Controller
         try {
             $project = Project::findOrFail($id);
             
-            // If position is being changed
+         
             if ($request->has('position') && $request->position != $project->position) {
                 $oldPosition = $project->position;
                 $newPosition = $request->position;
                 
-                // Find the project that currently has the requested position
+              
                 $projectToSwap = Project::where('position', $newPosition)->first();
                 
                 if ($projectToSwap) {
-                    // Update the other project's position
+                    
                     $projectToSwap->update(['position' => $oldPosition]);
                 }
             }
