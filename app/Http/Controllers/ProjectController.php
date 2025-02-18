@@ -82,15 +82,31 @@ class ProjectController extends Controller
 
     public function update(ProjectUpdateRequest $request, Project $project, int $id)
     {    
-        try{$project = Project::findOrFail($id);
+        try {
+            $project = Project::findOrFail($id);
+            
+            // If position is being changed
+            if ($request->has('position') && $request->position != $project->position) {
+                $oldPosition = $project->position;
+                $newPosition = $request->position;
+                
+                // Find the project that currently has the requested position
+                $projectToSwap = Project::where('position', $newPosition)->first();
+                
+                if ($projectToSwap) {
+                    // Update the other project's position
+                    $projectToSwap->update(['position' => $oldPosition]);
+                }
+            }
+            
+            $params = $request->all();
+            $project->update($params);
+            
+            return new ProjectResource($project);
+            
+        } catch(ModelNotFoundException $e) {
+            return response()->json(['message' => 'Project Not Found'], 404);
         }
-        catch(ModelNotFoundException $e){
-            return response()->json(['message'=> 'Project Not Found'],404);
-        }
-        
-        $params = $request->all();
-        $project->update($params);
-        return new ProjectResource($project) ;
     }
 
     
