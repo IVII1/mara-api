@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ProjectUpdateRequest extends FormRequest
+class ImageStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,7 @@ class ProjectUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'thumbnail' => 'string|url',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'title' => 'string',
             'material' => 'string',
             'height' => 'decimal:0,2',
@@ -32,14 +32,6 @@ class ProjectUpdateRequest extends FormRequest
             'units' => [ Rule::in(['cm', 'm', 'mm', 'ft', '"'])],
             'production_year' => 'integer',
             'description' =>'string|nullable',
-            'position'=> 'integer',
-        ];
-        
-    }
-
-    public function messages(): array{
-        return [
-            'units.in' => 'Units can only be one of the following: cm, m, mm, ft, "'
         ];
     }
 }

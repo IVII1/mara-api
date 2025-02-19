@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ImageUpdateRequest;
+use App\Http\Requests\ImageStoreRequest;
+use App\Http\Resources\BulkImageResource;
 use App\Http\Resources\ImageResource;
 use App\Models\Image;
 use Cloudinary\Cloudinary;
@@ -11,7 +13,7 @@ use Illuminate\Http\Request;
 
 class ImageController extends Controller
 {
-    public function upload(Request $request, int $projectId)
+    public function bulkUpload(Request $request, int $projectId)
     {
         $request->validate([
             'images' => 'required|array',
@@ -52,7 +54,7 @@ class ImageController extends Controller
             }
         }
     
-        return ImageResource::collection(collect($uploadedImages));
+        return BulkImageResource::collection(collect($uploadedImages));
     }
 
     public function destroy(int $imageId){
@@ -90,14 +92,8 @@ class ImageController extends Controller
         try {
      
             $image = Image::findOrFail($imageId);
-    
-          
-            $data = $request->only('project_id');
-    
-  
-            $image->fill($data);
-            $image->save();
-    
+            $params = $request->all();
+            $image->update($params);
             return response()->json([
                 'message' => 'Image updated successfully',
                 'image' => new ImageResource($image),
@@ -132,5 +128,21 @@ class ImageController extends Controller
             $image->load('project');
         return new ImageResource($image);
 }
+}
+public function upload(ImageStoreRequest $request, int $id){
+    $params = $request->all();
+    $cloudinary = new Cloudinary([
+        'cloud' => [
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'api_key'    => env('CLOUDINARY_API_KEY'),
+            'api_secret' => env('CLOUDINARY_API_SECRET'),
+        ],
+    ]);
+    $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image')->getRealPath());
+    $params['image_url'] = $uploadedFileResponse['secure_url'];
+    $params['cloudinary_id'] = $uploadedFileResponse['public_id'];
+    $params['project_id'] = $id;
+    $image = Image::create($params);
+    return new ImageResource($image);
 }
 }

@@ -15,28 +15,28 @@ class ProjectController extends Controller
 {
    
     public function index(Request $request)
-    {
-        $allowedSortColumns = ['id', 'title', 'created_at', 'updated_at', 'position']; 
+{
+    $allowedSortColumns = ['id', 'title', 'created_at', 'updated_at', 'position', 'production_year'];
+    
+    $query = Project::query();
+    
+    if ($request->has('sort')) {
+        $sortColumn = $request->input('sort');
+        $direction = $request->input('order', 'asc');
         
-        $query = Project::query();
         
-        if ($request->has('sort')) {
-            $sortColumn = $request->input('sort');
-            $direction = $request->input('order', 'asc');
-            
-            
-            if (in_array($sortColumn, $allowedSortColumns)) {
-                $query->orderBy($sortColumn, $direction);
-            }
-            
-          
-            if (!in_array(strtolower($direction), ['asc', 'desc'])) {
-                $direction = 'asc';
-            }
+        if (!in_array(strtolower($direction), ['asc', 'desc'])) {
+            $direction = 'asc';
         }
         
-        return $query->get();
+        
+        if (in_array($sortColumn, $allowedSortColumns)) {
+            $query->orderBy($sortColumn, $direction);
+        }
     }
+    
+    return $query->get();
+}
     
     public function store(ProjectStoreRequest $request)
     {
@@ -81,33 +81,40 @@ class ProjectController extends Controller
     }
 
     public function update(ProjectUpdateRequest $request, Project $project, int $id)
-    {    
-        try {
-            $project = Project::findOrFail($id);
+{    
+    try {
+        $project = Project::findOrFail($id);
+        
+        $params = $request->all();
+        
+        if ($request->has('position') && $request->position != $project->position) {
+            $oldPosition = $project->position;
+            $newPosition = $request->position;
             
-         
-            if ($request->has('position') && $request->position != $project->position) {
-                $oldPosition = $project->position;
-                $newPosition = $request->position;
-                
-              
-                $projectToSwap = Project::where('position', $newPosition)->first();
-                
-                if ($projectToSwap) {
-                    
-                    $projectToSwap->update(['position' => $oldPosition]);
-                }
+            
+            if ($newPosition > Project::max('position')) {
+                $newPosition = Project::max('position');
             }
             
-            $params = $request->all();
-            $project->update($params);
             
-            return new ProjectResource($project);
+            $params['position'] = $newPosition;
             
-        } catch(ModelNotFoundException $e) {
-            return response()->json(['message' => 'Project Not Found'], 404);
+            
+            $projectToSwap = Project::where('position', $newPosition)->first();
+            
+            if ($projectToSwap) {
+                $projectToSwap->update(['position' => $oldPosition]);
+            }
         }
+        
+        $project->update($params);
+        
+        return new ProjectResource($project);
+        
+    } catch(ModelNotFoundException $e) {
+        return response()->json(['message' => 'Project Not Found'], 404);
     }
+}
 
     
     public function destroy( int $id)
