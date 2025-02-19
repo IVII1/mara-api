@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Project extends Model
 {
     protected $fillable = [
-        'thumbnail',
+        'image_url',
         'cloudinary_id',
         'title',
         'material',

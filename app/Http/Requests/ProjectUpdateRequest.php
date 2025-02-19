@@ -23,7 +23,7 @@ class ProjectUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'thumbnail' => 'string|url',
+            'image_url' => 'string|url',
             'title' => 'string',
             'material' => 'string',
             'height' => 'decimal:0,2',

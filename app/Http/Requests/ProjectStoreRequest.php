@@ -23,7 +23,7 @@ class ProjectStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'cloudinary_id'=> 'string',    
             'title' => 'required|string',
             'material' => 'required|string',

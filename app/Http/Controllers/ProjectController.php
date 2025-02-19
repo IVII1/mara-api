@@ -52,11 +52,11 @@ class ProjectController extends Controller
             ],
         ]);
         
-        $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('thumbnail')->getRealPath());
+        $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image_url')->getRealPath());
         $thumbnailUrl = $uploadedFileResponse['secure_url'];
         $cloudinaryId = $uploadedFileResponse['public_id'];
         
-        $validatedData['thumbnail'] = $thumbnailUrl;
+        $validatedData['image_url'] = $thumbnailUrl;
         $validatedData['cloudinary_id'] = $cloudinaryId;
         
         $project = Project::create($validatedData);
