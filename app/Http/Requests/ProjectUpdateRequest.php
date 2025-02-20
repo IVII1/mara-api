@@ -33,6 +33,8 @@ class ProjectUpdateRequest extends FormRequest
             'production_year' => 'integer',
             'description' =>'string|nullable',
             'position'=> 'integer',
+            'category_ids' => 'sometimes|array',
+            'category_ids.*' => 'exists:categories,id'
         ];
         
     }

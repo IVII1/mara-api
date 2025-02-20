@@ -33,8 +33,9 @@ class ProjectStoreRequest extends FormRequest
             'units' => [ Rule::in(['cm', 'm', 'mm', 'ft', '"'])],
             'production_year' => 'required|integer',
             'description' =>'nullable|string',
-            
-
+            'position' => 'nullable|integer',
+            'category_ids' => 'sometimes|array',
+            'category_ids.*' => 'exists:categories,id'
         ];
     }
     public function messages()
