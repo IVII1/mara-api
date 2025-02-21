@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProjectController;
@@ -14,6 +15,8 @@ Route::get('/projects/{id}', [ProjectController::class, 'show'])->name('project.
 Route::post('/messages', [MessageController::class, 'store'])->name('message.store');
 Route::get('/images', [ImageController::class,'index'])->name('images.get.all');
 Route::get('images/{imageId}', [ImageController::class, 'show'])->name('images.show');
+Route::get('/categories', [CategoryController::class, 'index'])->name('category.get.all');
+Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('category.find');
 
 
 
@@ -33,4 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy'])->name('image.destroy');
     Route::put('images/{imageId}', [ImageController::class,'update'])->name('image.edit');
     Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('message.delete');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
+    Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.destroy');
 });

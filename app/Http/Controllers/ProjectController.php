@@ -15,28 +15,30 @@ class ProjectController extends Controller
 {
    
     public function index(Request $request)
-{
-    $allowedSortColumns = ['id', 'title', 'created_at', 'updated_at', 'position', 'production_year'];
-    
-    $query = Project::query();
-    
-    if ($request->has('sort')) {
-        $sortColumn = $request->input('sort');
-        $direction = $request->input('order', 'asc');
+    {
+        $allowedSortColumns = ['id', 'title', 'created_at', 'updated_at', 'position', 'production_year'];
         
+        $query = Project::query();
         
-        if (!in_array(strtolower($direction), ['asc', 'desc'])) {
-            $direction = 'asc';
+        if ($request->has('sort')) {
+            $sortColumn = $request->input('sort');
+            $direction = $request->input('order', 'asc');
+            
+            if (!in_array(strtolower($direction), ['asc', 'desc'])) {
+                $direction = 'asc';
+            }
+            
+            if (in_array($sortColumn, $allowedSortColumns)) {
+                $query->orderBy($sortColumn, $direction);
+            }
         }
         
-        
-        if (in_array($sortColumn, $allowedSortColumns)) {
-            $query->orderBy($sortColumn, $direction);
+        if ($this->shouldInclude($request, 'categories')) {
+            $query->with('categories');
         }
+        
+        return ProjectResource::collection($query->get());
     }
-    
-    return $query->get();
-}
     
     public function store(ProjectStoreRequest $request)
     {
@@ -60,6 +62,10 @@ class ProjectController extends Controller
         $validatedData['cloudinary_id'] = $cloudinaryId;
         
         $project = Project::create($validatedData);
+        
+        if ($request->has('categories')) {
+            $project->categories()->sync($request->categories);
+        }
         
         return new ProjectResource($project);
     }
@@ -107,7 +113,13 @@ class ProjectController extends Controller
             }
         }
         
+        if ($request->has('category_ids')) {
+            $project->categories()->sync($request->input('category_ids'));
+        }
+        
         $project->update($params);
+        
+        $project->load('categories');
         
         return new ProjectResource($project);
         

@@ -15,11 +15,11 @@ class ProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-           'id' => $this->id,
-           'image_url' => $this->image_url,
-           'cloudinary_id'=> $this->cloudinary_id,
-           'title' => $this->title,
-           'description'=> $this->description,
+            'id' => $this->id,
+            'image_url' => $this->image_url,
+            'cloudinary_id'=> $this->cloudinary_id,
+            'title' => $this->title,
+            'description'=> $this->description,
             'material' => $this->material,
             'height' => $this->height,
             'width' => $this->width,
@@ -30,7 +30,7 @@ class ProjectResource extends JsonResource
             'images' =>  ImageResource::collection($this->whenLoaded('images')),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-           
+            'categories' => CategoryResource::collection($this->whenLoaded('categories',)),
         ];
     }
 }
