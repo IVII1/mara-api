@@ -48,7 +48,7 @@ class AuthController extends Controller
         $token = $user->createToken($tokenName, $abilities, $expiresAt);
         $token = $token->plainTextToken;
 
-        return response()->json(['message'=> "Success",'token' => $token], 200);
+        return response()->json(['message'=> "Success",'token' => $token, 'user' => $user['name'], 'expiresAt' => $expiresAt], 200);
     }
 
     // Logout and revoke the token
