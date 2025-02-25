@@ -20,6 +20,7 @@ class MessageResource extends JsonResource
             'email' => $this->email,
             'subject' => $this->subject,
             'content' => $this->content,
+            'read' => $this->read,
             'created_at' => $this->created_at->format('Y-m-d H:i:s')
 
         ];

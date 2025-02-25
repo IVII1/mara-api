@@ -14,6 +14,7 @@ class MessageController extends Controller
 {
     public function store(MessageStoreRequest $request ){
         $params = $request->all();
+        $params['read'] = false;
         $message = Message::create($params);
         Notification::route('mail', env('RECEIVER_EMAIL'))->notify(new MessageReceived($message));
         return new MessageResource($message);
@@ -56,4 +57,10 @@ class MessageController extends Controller
         $message->delete();
             return response()->json(['message'=> 'Message deleted'],200);
     }
+    public function read(int $id){
+        $message = Message::findOrFail($id);
+        $message->read = true;
+        $message->save();
+        return new MessageResource($message);
+    }   
 }

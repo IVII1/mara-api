@@ -25,7 +25,7 @@ class MessageStoreRequest extends FormRequest
             'name' => 'required|string',
             'subject' => 'required|string',
             'email' => 'required|email',
-            'content' => 'required|string'
+            'content' => 'required|string',
         ];
     }
 }

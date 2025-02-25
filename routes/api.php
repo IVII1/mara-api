@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy'])->name('image.destroy');
     Route::put('images/{imageId}', [ImageController::class,'update'])->name('image.edit');
     Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('message.delete');
+    Route::put('/messages/{id}/read', [MessageController::class, 'read'])->name('message.read');
     Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
     Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.destroy');
