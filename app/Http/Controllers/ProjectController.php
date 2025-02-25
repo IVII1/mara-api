@@ -163,6 +163,15 @@ class ProjectController extends Controller
             if ($project->cloudinary_id) {
                 $cloudinary->uploadApi()->destroy($project->cloudinary_id);
             }
+            if ($project->hover_image_cloudinary_id) {
+                $cloudinary->uploadApi()->destroy($project->hover_image_cloudinary_id);
+            }
+            if ($project->images) {
+                foreach ($project->images as $image) {
+                    $cloudinary->uploadApi()->destroy($image->cloudinary_id);
+                    $image->delete();
+                }
+            }
     
            
             $project->delete();
