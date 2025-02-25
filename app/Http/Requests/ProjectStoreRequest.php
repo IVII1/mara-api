@@ -24,7 +24,9 @@ class ProjectStoreRequest extends FormRequest
     {
         return [
             'image_url' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'cloudinary_id'=> 'string',    
+            'hover_image_url' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cloudinary_id'=> 'string',
+            'hover_image_cloudinary_id'=> 'string',
             'title' => 'required|string',
             'material' => 'required|string',
             'height' => 'required|decimal:0,2',

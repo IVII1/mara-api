@@ -18,6 +18,8 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'image_url' => $this->image_url,
             'cloudinary_id'=> $this->cloudinary_id,
+            'hover_image_url' => $this->hover_image_url,
+            'hover_image_cloudinary_id' => $this->hover_image_cloudinary_id,
             'title' => $this->title,
             'description'=> $this->description,
             'material' => $this->material,

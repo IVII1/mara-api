@@ -37,7 +37,12 @@ class ProjectController extends Controller
             $query->with('categories');
         }
         
-        return ProjectResource::collection($query->get());
+        if ($this->shouldInclude($request, 'images')) {
+            $query->with('images');
+        }
+        
+        $projects = $query->get();
+        return ProjectResource::collection($projects);
     }
     
     public function store(ProjectStoreRequest $request)
@@ -60,6 +65,13 @@ class ProjectController extends Controller
         
         $validatedData['image_url'] = $thumbnailUrl;
         $validatedData['cloudinary_id'] = $cloudinaryId;
+
+        $hoverImageFileResponse = $cloudinary->uploadApi()->upload($request->file('hover_image_url')->getRealPath());
+        $hoverImageUrl = $hoverImageFileResponse['secure_url'];
+        $hoverImageCloudinaryId = $hoverImageFileResponse['public_id'];
+        
+        $validatedData['hover_image_url'] = $hoverImageUrl;
+        $validatedData['hover_image_cloudinary_id'] = $hoverImageCloudinaryId;
         
         $project = Project::create($validatedData);
         

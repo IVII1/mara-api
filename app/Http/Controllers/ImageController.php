@@ -113,36 +113,47 @@ class ImageController extends Controller
             ], 500);
         }
     }
-    public function index(){
-        $images = Image::all();
+    public function index(Request $request)
+    {
+        $query = Image::query();
+        
+        if ($this->shouldInclude($request, 'project')) {
+            $query->with('project');
+        }
+        
+        $images = $query->get();
         return ImageResource::collection($images);
     }
-    public function show(int $id,  Request $request){
-     try {
-        $image = Image::findOrFail($id);
-     }
-        catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Image not found', ], 404);
+
+    public function show(int $id, Request $request)
+    {
+        try {
+            $image = Image::findOrFail($id);
+            
+            if ($this->shouldInclude($request, 'project')) {
+                $image->load('project');
+            }
+            
+            return new ImageResource($image);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Image not found'], 404);
         }
-        if ($this->shouldInclude($request, 'project')) {
-            $image->load('project');
+    }
+
+    public function upload(ImageStoreRequest $request, int $id){
+        $params = $request->all();
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key'    => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+            ],
+        ]);
+        $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image')->getRealPath());
+        $params['image_url'] = $uploadedFileResponse['secure_url'];
+        $params['cloudinary_id'] = $uploadedFileResponse['public_id'];
+        $params['project_id'] = $id;
+        $image = Image::create($params);
         return new ImageResource($image);
-}
-}
-public function upload(ImageStoreRequest $request, int $id){
-    $params = $request->all();
-    $cloudinary = new Cloudinary([
-        'cloud' => [
-            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-            'api_key'    => env('CLOUDINARY_API_KEY'),
-            'api_secret' => env('CLOUDINARY_API_SECRET'),
-        ],
-    ]);
-    $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image')->getRealPath());
-    $params['image_url'] = $uploadedFileResponse['secure_url'];
-    $params['cloudinary_id'] = $uploadedFileResponse['public_id'];
-    $params['project_id'] = $id;
-    $image = Image::create($params);
-    return new ImageResource($image);
-}
+    }
 }
