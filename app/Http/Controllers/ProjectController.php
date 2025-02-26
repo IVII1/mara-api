@@ -142,7 +142,6 @@ class ProjectController extends Controller
             
             $params = $request->validated();
             
-            // Handle position update
             if ($request->has('position') && $request->position != $project->position) {
                 $oldPosition = $project->position;
                 $newPosition = $request->position;
@@ -160,12 +159,11 @@ class ProjectController extends Controller
                 }
             }
             
-            // Handle categories separately
+      
             if ($request->has('category_ids')) {
                 $project->categories()->sync($request->category_ids);
             }
-            
-            // Handle images
+         
             $cloudinary = new Cloudinary([
                 'cloud' => [
                     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -189,7 +187,7 @@ class ProjectController extends Controller
             
             $project->update($params);
             
-            // Load relationships for response
+      
             $project->load(['categories', 'images']);
             
             return new ProjectResource($project);
@@ -205,7 +203,7 @@ class ProjectController extends Controller
         try {
             $project = Project::findOrFail($id);
             
-            // Initialize Cloudinary once
+        
             $cloudinary = new Cloudinary([
                 'cloud' => [
                     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -214,17 +212,17 @@ class ProjectController extends Controller
                 ]
             ]);
 
-            // Delete main image if exists
+          
             if ($project->cloudinary_id) {
                 $cloudinary->uploadApi()->destroy($project->cloudinary_id);
             }
             
-            // Delete hover image if exists
+            
             if ($project->hover_image_cloudinary_id) {
                 $cloudinary->uploadApi()->destroy($project->hover_image_cloudinary_id);
             }
             
-            // Delete all associated images
+           
             if ($project->images) {
                 foreach ($project->images as $image) {
                     if ($image->cloudinary_id) {
@@ -237,13 +235,12 @@ class ProjectController extends Controller
                 }
             }
 
-            // Store position before deletion
+           
             $deletedProjectPosition = $project->position;
             
-            // Delete the project
+            
             $project->delete();
             
-            // Update positions of other projects
             $projectsToUpdate = Project::where('position', '>', $deletedProjectPosition)->get();
             foreach ($projectsToUpdate as $projectToUpdate) {
                 $projectToUpdate->position = $projectToUpdate->position - 1;

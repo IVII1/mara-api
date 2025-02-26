@@ -23,9 +23,8 @@ class MessageController extends Controller
     {
         $query = Message::query();
 
-        // Get limit and offset with defaults
-        $limit = $request->get('limit', 20);  // Default to 20 items
-        $offset = $request->get('offset', 0);  // Default to start
+        $limit = $request->get('limit', 20);    
+        $offset = $request->get('offset', 0);  
 
         if ($request->get('name')) {
             $query->where('name', $request->get('name'));
@@ -39,18 +38,15 @@ class MessageController extends Controller
             $query->whereLike('content', '%' . $request->get('content') . '%');
         }
 
-        // Get sort parameters with defaults
         $sortBy = $request->get('sort', 'created_at');
         $sortOrder = $request->get('sortOrder', 'desc');
 
-        // Add 'read' to allowed sort columns
         if ($sortBy === 'read') {
             $query->orderBy('read', $sortOrder);
         } else {
             $query->orderBy($sortBy, $sortOrder);
         }
-
-        // Apply limit and offset
+        
         $query->offset($offset)->limit($limit);
 
         $messages = $query->get();
