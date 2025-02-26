@@ -10,6 +10,8 @@ use Cloudinary\Cloudinary;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Image;
+use App\Http\Resources\ImageResource;
 
 
 class ProjectController extends Controller
@@ -259,6 +261,49 @@ class ProjectController extends Controller
             return response()->json([
                 'message' => 'Error deleting project: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function bulkUpload(Request $request, int $id)
+    {
+        try {
+            $project = Project::findOrFail($id);
+            
+            if (!$request->hasFile('images')) {
+                return response()->json(['message' => 'No images uploaded'], 400);
+            }
+
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key' => env('CLOUDINARY_API_KEY'),
+                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                ]
+            ]);
+
+            $uploadedImages = [];
+            
+            foreach ($request->file('images') as $image) {
+                $uploadedFileResponse = $cloudinary->uploadApi()->upload($image->getRealPath());
+                
+                $imageData = [
+                    'image_url' => $uploadedFileResponse['secure_url'],
+                    'cloudinary_id' => $uploadedFileResponse['public_id'],
+                    'project_id' => $project->id
+                ];
+                
+                $uploadedImages[] = Image::create($imageData);
+            }
+
+            return response()->json([
+                'message' => 'Images uploaded successfully',
+                'images' => ImageResource::collection($uploadedImages)
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Project not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error uploading images: ' . $e->getMessage()], 500);
         }
     }
 }
