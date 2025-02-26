@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     })->name('user'); 
+    Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('message.unread.count');
     Route::get('/messages', [MessageController::class, 'index'])->name('message.get.all');
     Route::get('/messages/{id}', [MessageController::class, 'show'])->name('message.find');
     Route::post('/projects', [ProjectController::class, 'store'])->name('project.store');
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('images/{imageId}', [ImageController::class,'update'])->name('image.edit');
     Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('message.delete');
     Route::put('/messages/{id}/read', [MessageController::class, 'read'])->name('message.read');
+    Route::put('/messages/read', [MessageController::class, 'readAll'])->name('message.read.all');
     Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
     Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.destroy');

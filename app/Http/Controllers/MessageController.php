@@ -19,8 +19,13 @@ class MessageController extends Controller
         Notification::route('mail', env('RECEIVER_EMAIL'))->notify(new MessageReceived($message));
         return new MessageResource($message);
     }
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $query = Message::query();
+
+        // Get limit and offset with defaults
+        $limit = $request->get('limit', 20);  // Default to 20 items
+        $offset = $request->get('offset', 0);  // Default to start
 
         if ($request->get('name')) {
             $query->where('name', $request->get('name'));
@@ -33,12 +38,23 @@ class MessageController extends Controller
         if ($request->get('content')) {
             $query->whereLike('content', '%' . $request->get('content') . '%');
         }
-        
+
+        // Get sort parameters with defaults
+        $sortBy = $request->get('sort', 'created_at');
+        $sortOrder = $request->get('sortOrder', 'desc');
+
+        // Add 'read' to allowed sort columns
+        if ($sortBy === 'read') {
+            $query->orderBy('read', $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        // Apply limit and offset
+        $query->offset($offset)->limit($limit);
 
         $messages = $query->get();
-        return  MessageResource::collection($messages);
-
-        
+        return MessageResource::collection($messages);
     }
     public function show(int $id){
         try{
@@ -62,5 +78,17 @@ class MessageController extends Controller
         $message->read = true;
         $message->save();
         return new MessageResource($message);
-    }   
+    }  
+    public function readAll(){
+        $messages = Message::where('read', false)->get();
+        foreach($messages as $message){
+            $message->read = true;
+            $message->save();
+        }
+        return response()->json(['message'=> 'All messages read'],200);
+    }
+    public function unreadCount(){
+        $count = Message::where('read', false)->count();
+        return response()->json(['count'=> $count],200);
+    }
 }
