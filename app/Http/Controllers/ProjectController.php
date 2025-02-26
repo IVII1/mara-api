@@ -138,42 +138,46 @@ class ProjectController extends Controller
     }
 
     public function update(ProjectUpdateRequest $request, int $id)
-    {    
-        try {
-            $project = Project::findOrFail($id);
+{
+    try {
+        $project = Project::findOrFail($id);
+        
+        $params = $request->validated();
+        
+        // Handle position update
+        if ($request->has('position') && $request->position != $project->position) {
+            $oldPosition = $project->position;
+            $newPosition = $request->position;
             
-            $params = $request->validated();
-            
-            if ($request->has('position') && $request->position != $project->position) {
-                $oldPosition = $project->position;
-                $newPosition = $request->position;
-                
-                if ($newPosition > Project::max('position')) {
-                    $newPosition = Project::max('position');
-                }
-                
-                $params['position'] = $newPosition;
-                
-                $projectToSwap = Project::where('position', $newPosition)->first();
-                
-                if ($projectToSwap) {
-                    $projectToSwap->update(['position' => $oldPosition]);
-                }
+            if ($newPosition > Project::max('position')) {
+                $newPosition = Project::max('position');
             }
             
-      
-            if ($request->has('category_ids')) {
-                $project->categories()->sync($request->category_ids);
-            }
-         
-            $cloudinary = new Cloudinary([
-                'cloud' => [
-                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                    'api_key' => env('CLOUDINARY_API_KEY'),
-                    'api_secret' => env('CLOUDINARY_API_SECRET'),
-                ]
-            ]);
+            $params['position'] = $newPosition;
             
+            $projectToSwap = Project::where('position', $newPosition)->first();
+            
+            if ($projectToSwap) {
+                $projectToSwap->update(['position' => $oldPosition]);
+            }
+        }
+        
+        // Handle category updates
+        if ($request->has('category_ids')) {
+            $project->categories()->sync($request->category_ids);
+        }
+        
+        // Initialize Cloudinary
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key' => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+            ]
+        ]);
+        
+        // Handle image deletions only if new images are provided
+        if ($request->has('images')) {
             if ($project->cloudinary_id) {
                 $cloudinary->uploadApi()->destroy($project->cloudinary_id);
             }
@@ -186,18 +190,20 @@ class ProjectController extends Controller
                     $image->delete();
                 }
             }
-            
-            $project->update($params);
-            
-      
-            $project->load(['categories', 'images']);
-            
-            return new ProjectResource($project);
-            
-        } catch(ModelNotFoundException $e) {
-            return response()->json(['message' => 'Project Not Found'], 404);
         }
+        
+        // Update project with validated parameters
+        $project->update($params);
+        
+        // Load related categories and images
+        $project->load(['categories', 'images']);
+        
+        return new ProjectResource($project);
+        
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['message' => 'Project Not Found'], 404);
     }
+}
 
     
     public function destroy(int $id)
