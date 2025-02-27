@@ -9,7 +9,6 @@ use App\Models\Project;
 use Cloudinary\Cloudinary;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Models\Image;
 use App\Http\Resources\ImageResource;
 
@@ -28,7 +27,7 @@ class ProjectController extends Controller
         $offset = $request->get('offset', 0);
         
         if ($request->has('sort')) {
-            $sortColumn = $request->input('sort');
+            $sortColumn = $request->input('sort', 'position');
             $direction = $request->input('order', 'asc');
             
             if (!in_array(strtolower($direction), ['asc', 'desc'])) {
@@ -55,8 +54,8 @@ class ProjectController extends Controller
             $query->with('images');
         }
         
-        // Apply pagination
-        $query->offset($offset)->limit($limit);
+      
+        $query->offset($offset)->limit($limit)->orderBy('position');
         
         return ProjectResource::collection($query->get());
     }
@@ -66,11 +65,11 @@ class ProjectController extends Controller
         try {
             $validatedData = $request->validated();
             
-            // Set position
+        
             $highestPosition = Project::max('position') ?? 0;
             $validatedData['position'] = $highestPosition + 1;
             
-            // Initialize Cloudinary
+          
             $cloudinary = new Cloudinary([
                 'cloud' => [
                     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -79,7 +78,7 @@ class ProjectController extends Controller
                 ]
             ]);
 
-            // Handle main image upload
+           
             if ($request->hasFile('image_url')) {
                 $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image_url')->getRealPath());
                 $validatedData['image_url'] = $uploadedFileResponse['secure_url'];
@@ -88,22 +87,22 @@ class ProjectController extends Controller
                 throw new \Exception('Main image is required');
             }
 
-            // Handle hover image upload
+        
             if ($request->hasFile('hover_image_url')) {
                 $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('hover_image_url')->getRealPath());
                 $validatedData['hover_image_url'] = $uploadedFileResponse['secure_url'];
                 $validatedData['hover_image_cloudinary_id'] = $uploadedFileResponse['public_id'];
             }
             
-            // Create project
+           
             $project = Project::create($validatedData);
             
-            // Attach categories if provided
+          
             if ($request->has('category_ids')) {
                 $project->categories()->sync($request->category_ids);
             }
             
-            // Load relationships for response
+           
             $project->load(['categories', 'images']);
             
             return new ProjectResource($project);
@@ -192,7 +191,7 @@ class ProjectController extends Controller
             }
         }
         
-        // Update project with validated parameters
+    // Update project with validated parameters
         $project->update($params);
         
         // Load related categories and images
