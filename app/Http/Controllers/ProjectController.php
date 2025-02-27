@@ -22,7 +22,7 @@ class ProjectController extends Controller
         
         $query = Project::query();
         
-        // Get limit and offset with defaults
+       
         $limit = $request->get('limit', 20);
         $offset = $request->get('offset', 0);
         
@@ -39,10 +39,17 @@ class ProjectController extends Controller
             }
         }
         
-        // Filter by category if category_id is provided
+        
         if ($request->has('category_id')) {
-            $query->whereHas('categories', function($q) use ($request) {
-                $q->where('categories.id', $request->category_id);
+            $categoryIds = $request->input('category_id'); 
+        
+            
+            if (!is_array($categoryIds)) {
+                $categoryIds = explode(',', $categoryIds);
+            }
+        
+            $query->whereHas('categories', function($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds); 
             });
         }
         
@@ -143,7 +150,7 @@ class ProjectController extends Controller
         
         $params = $request->validated();
         
-        // Handle position update
+       
         if ($request->has('position') && $request->position != $project->position) {
             $oldPosition = $project->position;
             $newPosition = $request->position;
@@ -161,12 +168,12 @@ class ProjectController extends Controller
             }
         }
         
-        // Handle category updates
+       
         if ($request->has('category_ids')) {
             $project->categories()->sync($request->category_ids);
         }
         
-        // Initialize Cloudinary
+        
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -191,10 +198,9 @@ class ProjectController extends Controller
             }
         }
         
-    // Update project with validated parameters
         $project->update($params);
         
-        // Load related categories and images
+       
         $project->load(['categories', 'images']);
         
         return new ProjectResource($project);
