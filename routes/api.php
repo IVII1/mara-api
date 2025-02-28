@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects', [ProjectController::class, 'store'])->name('project.store');
     Route::put('/projects/{id}', [ProjectController::class,'update'])->name('project.update');
     Route::delete('/projects/{id}', [ProjectController::class,'destroy'])->name('project.destroy');
+    Route::post('/projects/{id}/update-image', [ProjectController::class, 'updateImage']);
     Route::post('projects/{projectId}/bulk-upload', [ImageController::class, 'bulkUpload'])->name('image.bulk.upload');
    Route::post('projects/{projectId}/upload', [ImageController::class, 'upload'])->name('image.upload'); 
     Route::delete('/images/{imageId}', [ImageController::class, 'destroy'])->name('image.destroy');

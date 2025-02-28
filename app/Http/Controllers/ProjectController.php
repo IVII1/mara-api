@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Models\Image;
 use App\Http\Resources\ImageResource;
+use Illuminate\Support\Facades\Log;
 
 
 class ProjectController extends Controller
@@ -142,15 +143,16 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project Not Found'], 404);
         }
     }
-
     public function update(ProjectUpdateRequest $request, int $id)
 {
     try {
         $project = Project::findOrFail($id);
         
+        // Get all input data
         $params = $request->validated();
         
-       
+        
+        // Handle position updates
         if ($request->has('position') && $request->position != $project->position) {
             $oldPosition = $project->position;
             $newPosition = $request->position;
@@ -168,10 +170,31 @@ class ProjectController extends Controller
             }
         }
         
-       
+        // Handle category updates
         if ($request->has('category_ids')) {
             $project->categories()->sync($request->category_ids);
         }
+        
+        $project->update($params);
+        
+        return response()->json([
+            'success' => true,
+            'project' => $project->fresh()->load('categories', 'images')
+        ]);
+    } catch (\Exception $e) {
+     
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+public function updateImage(Request $request, int $id)
+{
+    try {
+        $project = Project::findOrFail($id);
+        
+        $request->validate([
+            'image_url' =>'file|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'file|mimes:jpeg,png,jpg,gif|max:10240'
+        ]);
         
         
         $cloudinary = new Cloudinary([
@@ -182,34 +205,46 @@ class ProjectController extends Controller
             ]
         ]);
         
-        // Handle image deletions only if new images are provided
-        if ($request->has('images')) {
-            if ($project->cloudinary_id) {
-                $cloudinary->uploadApi()->destroy($project->cloudinary_id);
-            }
-            if ($project->hover_image_cloudinary_id) {
-                $cloudinary->uploadApi()->destroy($project->hover_image_cloudinary_id);
-            }
-            if ($project->images) {
-                foreach ($project->images as $image) {
-                    $cloudinary->uploadApi()->destroy($image->cloudinary_id);
-                    $image->delete();
-                }
-            }
+       if($request->hasFile('image_url')){
+        $cloudinary->uploadApi()->destroy($project->cloudinary_id);
+            $uploadedFile = $request->file('image_url');
+            $serverFile = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath());
+            $project->update([
+                'image_url' => $serverFile['secure_url'],
+                'cloudinary_id' => $serverFile['public_id']
+            ]);
+           
         }
+        if($request->hasFile('hover_image_url')){
+            $cloudinary->uploadApi()->destroy($project->hover_image_cloudinary_id);
+                $uploadedFile = $request->file('hover_image_url');
+                $serverFile = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath());
+                $project->update([
+                    'hover_image_url' => $serverFile['secure_url'],
+                    'hover_image_cloudinary_id' => $serverFile['public_id']
+                ]);
+               
+            }
         
-        $project->update($params);
         
-       
-        $project->load(['categories', 'images']);
         
-        return new ProjectResource($project);
-        
-    } catch (ModelNotFoundException $e) {
-        return response()->json(['message' => 'Project Not Found'], 404);
+        return response()->json([
+            'success' => true,
+            'project' => $project->fresh()
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Image update error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
+    
+        
+      
+        
+        
+        
+      
     
     public function destroy(int $id)
     {
