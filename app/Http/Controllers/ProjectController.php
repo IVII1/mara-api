@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Models\Image;
 use App\Http\Resources\ImageResource;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 
 class ProjectController extends Controller
@@ -73,11 +74,14 @@ class ProjectController extends Controller
         try {
             $validatedData = $request->validated();
             
-        
+            // Handle newlines in description
+            if (isset($validatedData['description'])) {
+                $validatedData['description'] = str_replace('\n', "\n", $validatedData['description']);
+            }
+            
             $highestPosition = Project::max('position') ?? 0;
             $validatedData['position'] = $highestPosition + 1;
             
-          
             $cloudinary = new Cloudinary([
                 'cloud' => [
                     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -85,8 +89,8 @@ class ProjectController extends Controller
                     'api_secret' => env('CLOUDINARY_API_SECRET'),
                 ]
             ]);
-
-           
+            
+            // Rest of your method remains unchanged
             if ($request->hasFile('image_url')) {
                 $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image_url')->getRealPath());
                 $validatedData['image_url'] = $uploadedFileResponse['secure_url'];
@@ -94,23 +98,19 @@ class ProjectController extends Controller
             } else {
                 throw new \Exception('Main image is required');
             }
-
-        
+            
             if ($request->hasFile('hover_image_url')) {
                 $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('hover_image_url')->getRealPath());
                 $validatedData['hover_image_url'] = $uploadedFileResponse['secure_url'];
                 $validatedData['hover_image_cloudinary_id'] = $uploadedFileResponse['public_id'];
             }
             
-           
             $project = Project::create($validatedData);
             
-          
             if ($request->has('category_ids')) {
                 $project->categories()->sync($request->category_ids);
             }
             
-           
             $project->load(['categories', 'images']);
             
             return new ProjectResource($project);
