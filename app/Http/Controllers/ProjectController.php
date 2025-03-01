@@ -226,8 +226,6 @@ public function updateImage(Request $request, int $id)
                
             }
         
-        
-        
         return response()->json([
             'success' => true,
             'project' => $project->fresh()
@@ -237,14 +235,6 @@ public function updateImage(Request $request, int $id)
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
-
-    
-        
-      
-        
-        
-        
-      
     
     public function destroy(int $id)
     {
