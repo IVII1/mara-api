@@ -64,7 +64,7 @@ class ProjectController extends Controller
         }
         
       
-        $query->offset($offset)->limit($limit)->orderBy('position');
+        $query->orderBy('position');
         
         return ProjectResource::collection($query->get());
     }
@@ -74,10 +74,8 @@ class ProjectController extends Controller
         try {
             $validatedData = $request->validated();
             
-            // Handle newlines in description
-            if (isset($validatedData['description'])) {
-                $validatedData['description'] = str_replace('\n', "\n", $validatedData['description']);
-            }
+           
+          
             
             $highestPosition = Project::max('position') ?? 0;
             $validatedData['position'] = $highestPosition + 1;
@@ -90,7 +88,7 @@ class ProjectController extends Controller
                 ]
             ]);
             
-            // Rest of your method remains unchanged
+           
             if ($request->hasFile('image_url')) {
                 $uploadedFileResponse = $cloudinary->uploadApi()->upload($request->file('image_url')->getRealPath());
                 $validatedData['image_url'] = $uploadedFileResponse['secure_url'];
