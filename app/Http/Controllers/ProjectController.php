@@ -190,10 +190,9 @@ public function updateImage(Request $request, int $id)
         $project = Project::findOrFail($id);
         
         $request->validate([
-            'image_url' =>'file|mimes:jpeg,png,jpg,gif|max:2048',
-            'image' => 'file|mimes:jpeg,png,jpg,gif|max:10240'
+            'image_url' => 'file|mimes:jpeg,png,jpg,gif|max:2048',
+            'hover_image_url' => 'file|mimes:jpeg,png,jpg,gif|max:10240'
         ]);
-        
         
         $cloudinary = new Cloudinary([
             'cloud' => [
@@ -203,26 +202,42 @@ public function updateImage(Request $request, int $id)
             ]
         ]);
         
-       if($request->hasFile('image_url')){
-        $cloudinary->uploadApi()->destroy($project->cloudinary_id);
+        if($request->hasFile('image_url')) {
+            // Upload new image first
             $uploadedFile = $request->file('image_url');
             $serverFile = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath());
+            
+            // Store old cloudinary ID
+            $oldCloudinaryId = $project->cloudinary_id;
+            
+            // Update project with new image info
             $project->update([
                 'image_url' => $serverFile['secure_url'],
                 'cloudinary_id' => $serverFile['public_id']
             ]);
-           
-        }
-        if($request->hasFile('hover_image_url')){
-            $cloudinary->uploadApi()->destroy($project->hover_image_cloudinary_id);
-                $uploadedFile = $request->file('hover_image_url');
-                $serverFile = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath());
-                $project->update([
-                    'hover_image_url' => $serverFile['secure_url'],
-                    'hover_image_cloudinary_id' => $serverFile['public_id']
-                ]);
-               
+            
+            // Delete old image only after successful update
+            if (!empty($oldCloudinaryId)) {
+                $cloudinary->uploadApi()->destroy($oldCloudinaryId);
             }
+        }
+        
+        if($request->hasFile('hover_image_url')) {
+            // Similar approach for hover image
+            $uploadedFile = $request->file('hover_image_url');
+            $serverFile = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath());
+            
+            $oldHoverCloudinaryId = $project->hover_image_cloudinary_id;
+            
+            $project->update([
+                'hover_image_url' => $serverFile['secure_url'],
+                'hover_image_cloudinary_id' => $serverFile['public_id']
+            ]);
+            
+            if (!empty($oldHoverCloudinaryId)) {
+                $cloudinary->uploadApi()->destroy($oldHoverCloudinaryId);
+            }
+        }
         
         return response()->json([
             'success' => true,
