@@ -12,7 +12,7 @@ You can obtain all the cloudinary related entries by creating an account on clou
 - MAIL_PORT
 - MAIL_USERNAME
 - MAIL_PASSWORD
-- MAIL_ENCRYPTIO
+- MAIL_ENCRYPTION
 - MAIL_FROM_ADDRESS
 - DB_CONNECTION=pgsql
 - DB_HOST=127.0.0.1
